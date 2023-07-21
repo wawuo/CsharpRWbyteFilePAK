@@ -1,69 +1,80 @@
 using System.Drawing.Imaging;
 using System.Globalization;
 using System.Reflection.PortableExecutable;
+using System.Text;
 using System.Windows.Forms;
 
 namespace 图片读写
 {
     public partial class Form1 : Form
     {
-       // private Panel panel; // 添加 panel 成员变量
         private List<string> ImageFiles = new();
         private List<string> OtherFiles = new();
         string DataFile = "output.dat";
-        private Panel Panel;
-
+        private Panel panel; // 将面板作为函数的成员变量
         public Form1()
         {
             InitializeComponent();
         }
-        private void CreatePanel()
+        private void Form_Resize(object sender, EventArgs e)
         {
-            // 创建一个 Panel 控件
-            Panel = new Panel(); // 使用类的成员变量 panel
-            Panel.Location = new Point(10, 10);
-            Panel.Size = new Size(500, 500);
-            Panel.AutoScroll = true;
-           // Panel.Controls.Clear();
-            this.Controls.Add(Panel);
+            // 计算 Panel 控件的新宽度
+            int newWidth = this.ClientSize.Width - 30;
+            int newHeight = this.ClientSize.Height - 600;
+
+            // 更新 Panel 控件的宽度
+            panel.Width = newWidth;
+            panel.Height = newHeight;
         }
+
         private void FiledataReader(string DataFile)
         {
-            if (Panel != null) // 检查 panel 是否已经初始化
+            if (panel == null)
             {
-                // 清除 Panel 控件中的所有控件
-                Panel.Controls.Clear();
+                panel = new Panel();
+                panel.Location = new Point(10, 60);
 
-                // 从窗体的 Controls 集合中移除旧的 Panel 控件
-                this.Controls.Remove(Panel);
+                // 计算 Panel 控件的初始宽度和高度
+                int initialWidth = this.ClientSize.Width - 30;
+                int initialHeight = this.ClientSize.Height - 600;
 
-                // 调用 CreatePanel 方法重新创建 Panel 控件
-                CreatePanel();
+                // 设置 Panel 控件的初始大小
+                panel.Size = new Size(initialWidth, initialHeight);
 
+                panel.AutoScroll = true;
+                this.Resize += Form_Resize;
+                this.Controls.Add(panel);
             }
+            else
+            {
+                panel.Controls.Clear(); // 清空面板上的内容
+            }
+
             ImageFiles.Clear();
             OtherFiles.Clear();
             using (FileStream fs = new FileStream(DataFile, FileMode.Open, FileAccess.Read))
             {
                 BinaryReader reader = new BinaryReader(fs);
 
-                // 创建一个 Panel 控件
-                CreatePanel();
-
-                // 读取图片数据
-                int i = 0;
                 int x = 0;
                 int y = 0;
-                while (reader.PeekChar() != -1)  // 当还有数据可读时
+                int j = 0;
+
+                while (reader.PeekChar() != -1)
                 {
-                    int imageIndex = i + 1; // 记录图片顺序
-                    int j = 1;                      // 记录文件位置
+                    int imageIndex = j + 1; // 记录图片顺序
                     int imageSize = reader.ReadInt32();  // 读取图片大小
                     byte[] imageData = reader.ReadBytes(imageSize);  // 读取图片数据
+                    UTF8Encoding utf8 = new UTF8Encoding();
+                    int charCount = utf8.GetCharCount(imageData);
+                    char[] chars = new char[charCount];
+                    int charsDecodedCount = utf8.GetChars(imageData, 0, imageData.Length, chars, 0);
+
+
                     using (MemoryStream ms = new MemoryStream(imageData))
                     {
                         Image image = Image.FromStream(ms);
-                        MessageBox.Show($"读取到{j}张图片，大小为 {imageSize} 字节");
+                       // MessageBox.Show($"读取到{j}张图片，大小为 {imageSize} 字节");
                         // 在这里显示图片
                         PictureBox pictureBox = new PictureBox();
                         pictureBox.Image = image;
@@ -71,10 +82,10 @@ namespace 图片读写
                         pictureBox.Size = new Size(100, 100);
                         pictureBox.SizeMode = PictureBoxSizeMode.Zoom;
                         pictureBox.Click += PictureBox_Click;
-                        Panel.Controls.Add(pictureBox);
-                        j++;
+                        panel.Controls.Add(pictureBox);
+                        j = j + 1;
                         x += pictureBox.Width + 10;
-                        if (x + pictureBox.Width > Panel.Width)
+                        if (x + pictureBox.Width > panel.Width)
                         {
                             x = 0;
                             y += pictureBox.Height + 10;
@@ -83,125 +94,16 @@ namespace 图片读写
                         label.Text = $" 文件位置: {imageIndex}"; // 显示图片大小和文件位置
                         label.Location = new Point(pictureBox.Location.X, pictureBox.Location.Y + pictureBox.Height);
                         label.AutoSize = true;
-                        Panel.Controls.Add(label);
-
+                        panel.Controls.Add(label);
                     }
-   
                 }
 
-                MessageBox.Show("所有数据已从流文件中读取");
                 reader.Close();
             }
+
+            MessageBox.Show("所有数据已从流文件中读取");
         }
-        //private void FiledataReader(string DataFile)
-        //{
-        //    if (Panel != null) // 检查 panel 是否已经初始化
-        //    {
-        //        // 清除 Panel 控件中的所有控件
-        //        Panel.Controls.Clear();
 
-        //        // 从窗体的 Controls 集合中移除旧的 Panel 控件
-        //        this.Controls.Remove(Panel);
-
-        //        // 调用 CreatePanel 方法重新创建 Panel 控件
-        //        CreatePanel();
-
-        //    }
-        //    ImageFiles.Clear();
-        //    OtherFiles.Clear();
-        //    using (FileStream fs = new FileStream(DataFile, FileMode.Open, FileAccess.Read))
-        //    {
-        //        BinaryReader reader = new BinaryReader(fs);
-
-        //        // 创建一个 Panel 控件
-        //        CreatePanel();
-
-        //        // 读取图片数据
-        //        int i = 0;
-        //        int x = 0;
-        //        int y = 0;
-        //        while (reader.PeekChar() != -1)  // 当还有数据可读时
-        //        {
-        //            int imageIndex = i + 1; // 记录图片顺序
-        //            int j = 1;                      // 记录文件位置
-
-        //            int imageSize = reader.ReadInt32();  // 读取图片大小
-        //            byte[] imageData = reader.ReadBytes(imageSize);  // 读取图片数据
-
-        //            // 检查 PNG 文件的魔术数字
-        //         // if (imageData.Length >= 8 && imageData[0] == 0x89 && imageData[1] == 0x50 && imageData[2] == 0x4E && imageData[3] == 0x47 &&
-        //         //     imageData[4] == 0x0D && imageData[5] == 0x0A && imageData[6] == 0x1A && imageData[7] == 0x0A)
-        //         // {
-        //                using (MemoryStream ms = new MemoryStream(imageData))
-        //                {
-        //                    Image image = Image.FromStream(ms);
-
-        //                    MessageBox.Show($"读取到{j}张图片，大小为 {imageSize} 字节");
-        //                    // 在这里显示图片
-        //                    PictureBox pictureBox = new PictureBox();
-        //                    pictureBox.Image = image;
-        //                    pictureBox.Location = new Point(x, y);
-        //                    pictureBox.Size = new Size(100, 100);
-        //                    pictureBox.SizeMode = PictureBoxSizeMode.Zoom;
-        //                    pictureBox.Click += PictureBox_Click;
-        //                    Panel.Controls.Add(pictureBox);
-        //                    j++;
-        //                    x += pictureBox.Width + 10;
-        //                    if (x + pictureBox.Width > Panel.Width)
-        //                    {
-        //                        x = 0;
-        //                        y += pictureBox.Height + 10;
-        //                    }
-        //                    Label label = new Label();
-        //                    label.Text = $" 文件位置: {imageIndex}"; // 显示图片大小和文件位置
-        //                    label.Location = new Point(pictureBox.Location.X, pictureBox.Location.Y + pictureBox.Height);
-        //                    label.AutoSize = true;
-        //                    Panel.Controls.Add(label);
-
-        //                }
-        //        //    }
-        //            //// 检查 JPEG 文件的魔术数字
-        //            //else if (imageData.Length >= 2 && imageData[0] == 0xFF && imageData[1] == 0xD8)
-        //            //{
-        //            //    using (MemoryStream ms = new MemoryStream(imageData))
-        //            //    {
-        //            //        Image image = Image.FromStream(ms);
-
-        //            //        MessageBox.Show($"读取到{j}张图片，大小为 {imageSize} 字节");
-        //            //        // 在这里显示图片
-        //            //        PictureBox pictureBox = new PictureBox();
-        //            //        pictureBox.Image = image;
-        //            //        pictureBox.Location = new Point(x, y);
-        //            //        pictureBox.Size = new Size(100, 100);
-        //            //        pictureBox.SizeMode = PictureBoxSizeMode.Zoom;
-        //            //        pictureBox.Click += PictureBox_Click;
-        //            //        Panel.Controls.Add(pictureBox);
-        //            //        i++;
-        //            //        x += pictureBox.Width + 10;
-        //            //        if (x + pictureBox.Width > Panel.Width)
-        //            //        {
-        //            //            x = 0;
-        //            //            y += pictureBox.Height + 10;
-        //            //        }
-        //            //        Label label = new Label();
-        //            //        label.Text = $" 文件位置: {imageIndex}"; // 显示图片大小和文件位置
-        //            //        label.Location = new Point(pictureBox.Location.X, pictureBox.Location.Y + pictureBox.Height);
-        //            //        label.AutoSize = true;
-        //            //        Panel.Controls.Add(label);
-
-
-        //            //    }
-        //            //}
-        //            //else
-        //            //{
-        //            //    break;
-        //            //}
-        //        }
-
-        //        MessageBox.Show("所有数据已从流文件中读取");
-        //        reader.Close();
-        //    }
-        //} 
 
         private void PictureBox_Click(object sender, EventArgs e)
         {
@@ -229,8 +131,10 @@ namespace 图片读写
                     writer.Write(imageData.Length);
                     writer.Write(imageData);
 
-                    MessageBox.Show($"图片文件 {imageFile} 已写入");
+                   // MessageBox.Show($"图片文件 {imageFile} 已写入");
                 }
+
+              
 
                 writer.Close();
             }
@@ -259,31 +163,17 @@ namespace 图片读写
 
         private void button2_Click(object sender, EventArgs e)
         {
-            // 遍历 panel 中的所有子控件
-            if (Panel != null) // 检查 panel 是否已经初始化
-            {
-                // 清除 Panel 控件中的所有控件
-                Panel.Controls.Clear();
 
-                // 从窗体的 Controls 集合中移除旧的 Panel 控件
-                this.Controls.Remove(Panel);
 
-                // 调用 CreatePanel 方法重新创建 Panel 控件
-                CreatePanel();
-
-            }
             ImageFiles.Clear();
             OtherFiles.Clear();
-          //  FiledataReader = null;
+            //  FiledataReader = null;
             FiledataReader(DataFile);
         }
-      
+
 
         private void button3_Click_1(object sender, EventArgs e)
         {
-            // 遍历 panel 中的所有子控件
-         
-
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Title = "选择要读取的文件";
             openFileDialog.Filter = "二进制文件 (*.dat)|*.dat|所有文件 (*.*)|*.*";
@@ -294,5 +184,29 @@ namespace 图片读写
             }
 
         }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Title = "选择要写入的图片文件";
+            openFileDialog.Filter = "图片文件 (*.png;*.jpg)|*.png;*.jpg|所有文件 (*.*)|*.*";
+            openFileDialog.Multiselect = true;
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                string[] selectedFiles = openFileDialog.FileNames;
+
+                SaveFileDialog saveFileDialog = new SaveFileDialog();
+                saveFileDialog.Title = "选择要保存的文件";
+                saveFileDialog.Filter = "二进制文件 (*.dat)|*.dat|所有文件 (*.*)|*.*";
+                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    string selectedFile = saveFileDialog.FileName;
+                    WriteDataToFile(selectedFile, selectedFiles.ToList(), OtherFiles);
+                    MessageBox.Show(selectedFile); 
+                }
+            }
+        }
+
+
     }
 }

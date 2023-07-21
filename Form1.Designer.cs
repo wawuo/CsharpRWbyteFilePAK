@@ -32,6 +32,7 @@
             button2 = new Button();
             pictureBox1 = new PictureBox();
             button3 = new Button();
+            button4 = new Button();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             SuspendLayout();
             // 
@@ -41,7 +42,7 @@
             button1.Name = "button1";
             button1.Size = new Size(75, 23);
             button1.TabIndex = 0;
-            button1.Text = "写入";
+            button1.Text = "写入默认";
             button1.UseVisualStyleBackColor = true;
             button1.Click += button1_Click;
             // 
@@ -51,15 +52,15 @@
             button2.Name = "button2";
             button2.Size = new Size(75, 23);
             button2.TabIndex = 1;
-            button2.Text = "读取";
+            button2.Text = "读取默认";
             button2.UseVisualStyleBackColor = true;
             button2.Click += button2_Click;
             // 
             // pictureBox1
             // 
-            pictureBox1.Location = new Point(189, 331);
+            pictureBox1.Location = new Point(-3, 287);
             pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(1018, 487);
+            pictureBox1.Size = new Size(1280, 640);
             pictureBox1.TabIndex = 2;
             pictureBox1.TabStop = false;
             // 
@@ -69,15 +70,26 @@
             button3.Name = "button3";
             button3.Size = new Size(75, 23);
             button3.TabIndex = 3;
-            button3.Text = "读取";
+            button3.Text = "读取自选";
             button3.UseVisualStyleBackColor = true;
             button3.Click += button3_Click_1;
+            // 
+            // button4
+            // 
+            button4.Location = new Point(12, 32);
+            button4.Name = "button4";
+            button4.Size = new Size(75, 23);
+            button4.TabIndex = 4;
+            button4.Text = "写入自选";
+            button4.UseVisualStyleBackColor = true;
+            button4.Click += button4_Click;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1205, 823);
+            Controls.Add(button4);
             Controls.Add(button3);
             Controls.Add(pictureBox1);
             Controls.Add(button2);
@@ -94,5 +106,6 @@
         private Button button2;
         private PictureBox pictureBox1;
         private Button button3;
+        private Button button4;
     }
 }
